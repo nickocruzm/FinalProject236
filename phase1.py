@@ -4,7 +4,7 @@ CS 236 - Database Management Systems
 """
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, count, isnan, when, mean, stddev, min, max
+from pyspark.sql.functions import col
 import pyspark.sql.functions as F
 import os
 
