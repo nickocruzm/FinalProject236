@@ -177,6 +177,7 @@ def compare_column_types(df1, df2):
 type_mismatches = compare_column_types(df1, df2)
 
 
+# ==== END SESION ====
 print("\nClosing Spark session...")
 try:
     spark.stop()
