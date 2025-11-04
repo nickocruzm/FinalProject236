@@ -228,11 +228,6 @@ spark = SparkSession.builder \
     .getOrCreate()
 ```
 
-**Configuration Rationale:**
-- `spark.driver.memory = 4g`: Allocated sufficient memory for large dataset processing
-- `spark.sql.shuffle.partitions = 8`: Optimized parallelism for local execution
-- `spark.ui.enabled = false`: Disabled UI to reduce overhead in batch processing
-
 **Step 2: Load Cleaned Datasets from Phase 1**
 ```python
 # Load Hotel Booking dataset
@@ -254,7 +249,7 @@ merged_count = merged_df.count()
 print(f"Merged dataset loaded: {merged_count:,} rows")
 ```
 
-**Decision**: Used `inferSchema=True` to automatically detect data types from CSV, reducing manual type conversion errors.
+Used `inferSchema=True` to automatically detect data types from CSV, reducing manual type conversion errors.
 
 **Step 3: Data Preparation**
 ```python
@@ -272,7 +267,7 @@ if "_c0" in merged_df.columns:
     print("Dropped index column from merged dataset")
 ```
 
-**Rationale**: The `_c0` column is an artifact from CSV export (pandas index). Removing it ensures schema alignment with PostgreSQL tables.
+The `_c0` column is an artifact from CSV export. Removing it ensures schema alignment with PostgreSQL tables.
 
 **Step 4: JDBC Connection Setup**
 ```python
@@ -285,10 +280,6 @@ jdbc_properties = {
 }
 ```
 
-**Connection Parameters:**
-- **URL**: `jdbc:postgresql://localhost:5432/hotel_bookings`
-- **Driver**: Official PostgreSQL JDBC driver ensures compatibility
-
 **Step 5: Write to Database**
 ```python
 print("\nWriting hotel_data table")
@@ -297,3 +288,14 @@ hotel_df.write \
     .jdbc(url=JDBC_URL, table="hotel_data", properties=jdbc_properties)
 print(f"hotel_data table populated with {hotel_count:,} rows")
 ```
+
+`mode="overwrite"`: Replaces existing data, ensuring clean state on each execution
+
+**Step 6: Verification**
+```python
+hotel_verify = spark.read \
+    .jdbc(url=JDBC_URL, table="hotel_data", properties=jdbc_properties)
+print(f"hotel_data: {hotel_verify.count():,} rows")
+```
+
+Read-back verification confirms successful insertion and data integrity.
