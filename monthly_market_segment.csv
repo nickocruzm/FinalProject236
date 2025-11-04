@@ -1,0 +1,107 @@
+,arrival_month,market_segment_type,bookings
+0,1,Complementary,66
+1,1,Corporate,298
+2,1,Direct,369
+3,1,Groups,205
+4,1,Offline,314
+5,1,Offline TA/TO,497
+6,1,Online,564
+7,1,Online TA,949
+8,2,Aviation,2
+9,2,Complementary,48
+10,2,Corporate,601
+11,2,Direct,523
+12,2,Groups,577
+13,2,Offline,438
+14,2,Offline TA/TO,856
+15,2,Online,1041
+16,2,Online TA,1509
+17,3,Aviation,6
+18,3,Complementary,55
+19,3,Corporate,451
+20,3,Direct,491
+21,3,Groups,671
+22,3,Offline,538
+23,3,Offline TA/TO,1061
+24,3,Online,1627
+25,3,Online TA,2282
+26,4,Aviation,50
+27,4,Complementary,34
+28,4,Corporate,260
+29,4,Direct,462
+30,4,Groups,1093
+31,4,Offline,661
+32,4,Offline TA/TO,1171
+33,4,Online,1973
+34,4,Online TA,2460
+35,5,Aviation,58
+36,5,Complementary,53
+37,5,Corporate,539
+38,5,Direct,449
+39,5,Groups,1206
+40,5,Offline,651
+41,5,Offline TA/TO,1150
+42,5,Online,1676
+43,5,Online TA,2294
+44,6,Aviation,12
+45,6,Complementary,44
+46,6,Corporate,254
+47,6,Direct,393
+48,6,Groups,537
+49,6,Offline,1371
+50,6,Offline TA/TO,1964
+51,6,Online,1706
+52,6,Online TA,2214
+53,7,Aviation,5
+54,7,Complementary,44
+55,7,Corporate,284
+56,7,Direct,819
+57,7,Groups,1243
+58,7,Offline,638
+59,7,Offline TA/TO,1481
+60,7,Online,2149
+61,7,Online TA,3605
+62,8,Complementary,94
+63,8,Corporate,276
+64,8,Direct,1220
+65,8,Groups,1381
+66,8,Offline,740
+67,8,Offline TA/TO,1490
+68,8,Online,2904
+69,8,Online TA,4658
+70,8,Undefined,2
+71,9,Aviation,36
+72,9,Complementary,105
+73,9,Corporate,626
+74,9,Direct,878
+75,9,Groups,2550
+76,9,Offline,1592
+77,9,Offline TA/TO,2971
+78,9,Online,2691
+79,9,Online TA,3670
+80,10,Aviation,58
+81,10,Complementary,114
+82,10,Corporate,649
+83,10,Direct,892
+84,10,Groups,2531
+85,10,Offline,2068
+86,10,Offline TA/TO,3149
+87,10,Online,2954
+88,10,Online TA,4062
+89,11,Aviation,25
+90,11,Complementary,115
+91,11,Corporate,940
+92,11,Direct,624
+93,11,Groups,1143
+94,11,Offline,801
+95,11,Offline TA/TO,1323
+96,11,Online,1888
+97,11,Online TA,2915
+98,12,Complementary,148
+99,12,Corporate,572
+100,12,Direct,857
+101,12,Groups,820
+102,12,Offline,716
+103,12,Offline TA/TO,1439
+104,12,Online,2041
+105,12,Online TA,3208
