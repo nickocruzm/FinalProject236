@@ -74,10 +74,6 @@ try:
     
 except Exception as e:
     print(f"\nERROR loading datasets: {str(e)}")
-    print("\nPlease verify:")
-    print(f"  1. CSV files exist at: {DATA_PATH}")
-    print("  2. File paths are correct")
-    print("  3. Files are not corrupted")
     sys.exit(1)
 
 # ============================================================================
@@ -119,21 +115,21 @@ print("="*70)
 
 try:
     # Table 1: Hotel Booking Data
-    print("\nWriting hotel_data table...")
+    print("\nWriting hotel_data table")
     hotel_df.write \
         .mode("overwrite") \
         .jdbc(url=JDBC_URL, table="hotel_data", properties=jdbc_properties)
     print(f"hotel_data table populated with {hotel_count:,} rows")
     
     # Table 2: Customer Reservations Data
-    print("\nWriting customer_data table...")
+    print("\nWriting customer_data table")
     customer_df.write \
         .mode("overwrite") \
         .jdbc(url=JDBC_URL, table="customer_data", properties=jdbc_properties)
     print(f"customer_data table populated with {customer_count:,} rows")
     
     # Table 3: Unified/Merged Data
-    print("\nWriting unified_data table...")
+    print("\nWriting unified_data table")
     merged_df.write \
         .mode("overwrite") \
         .jdbc(url=JDBC_URL, table="unified_data", properties=jdbc_properties)
@@ -141,12 +137,6 @@ try:
     
 except Exception as e:
     print(f"\nERROR writing to database: {str(e)}")
-    print("\nPlease verify:")
-    print("  1. PostgreSQL container is running (docker ps)")
-    print("  2. Connection details are correct")
-    print("  3. JDBC driver is loaded (use --packages flag)")
-    print("\nCommand should be:")
-    print("  pyspark --packages org.postgresql:postgresql:42.7.3 phase2_populate_db.py")
     sys.exit(1)
 
 # ============================================================================
@@ -158,7 +148,7 @@ print("="*70)
 
 try:
     # Verify each table
-    print("\nReading back from database to verify...")
+    print("\nReading back from database to verify")
     
     hotel_verify = spark.read \
         .jdbc(url=JDBC_URL, table="hotel_data", properties=jdbc_properties)

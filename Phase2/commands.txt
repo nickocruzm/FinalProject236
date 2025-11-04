@@ -1,3 +1,6 @@
+# Run phase 2 script
+spark-submit --packages org.postgresql:postgresql:42.7.3 phase2_populate_db.py      
+
 # Check if container is running
 docker ps | grep cs236_postgres
 
