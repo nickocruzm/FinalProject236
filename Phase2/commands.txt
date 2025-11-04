@@ -1,0 +1,23 @@
+# Run phase 2 script
+spark-submit --packages org.postgresql:postgresql:42.7.3 phase2_populate_db.py      
+
+# Check if container is running
+docker ps | grep cs236_postgres
+
+# View row counts
+docker exec -it cs236_postgres psql -U postgres -d hotel_bookings -c "SELECT 'hotel_data' as table, COUNT(*) FROM hotel_data UNION ALL SELECT 'customer_data', COUNT(*) FROM customer_data UNION ALL SELECT 'unified_data', COUNT(*) FROM unified_data;"
+
+# List Tables
+docker exec -it cs236_postgres psql -U postgres -d hotel_bookings -c "\dt"
+
+# Sample Hotel Data
+docker exec -it cs236_postgres psql -U postgres -d hotel_bookings -c "SELECT * FROM hotel_data LIMIT 5;"
+
+# Sample Customer Data
+docker exec -it cs236_postgres psql -U postgres -d hotel_bookings -c "SELECT * FROM customer_data LIMIT 5;"
+
+# Sample Unified Data
+docker exec -it cs236_postgres psql -U postgres -d hotel_bookings -c "SELECT * FROM unified_data LIMIT 5;"
+
+# Check Table Structure
+docker exec -it cs236_postgres psql -U postgres -d hotel_bookings -c "\d hotel_data"
