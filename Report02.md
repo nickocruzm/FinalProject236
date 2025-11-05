@@ -2,7 +2,7 @@
 
 
 
-### 1. Cancellation Rates for each month
+## 1. Cancellation Rates for each month
 
 We calculated the percentage of bookings canceled in each month by grouping on `arrival_month` and computing the mean of the binary `is_canceled` column. Higher percentages indicate months with heavier booking volatility.
 
@@ -38,16 +38,48 @@ We calculated the percentage of bookings canceled in each month by grouping on `
 | 11             | 30.662983       |
 | 12             | 28.293031       |
 
-![Cancel Rate by Month](Cancel_Rate_by_month.png)
+![Cancel Rate by Month](images/Cancel_Rate_by_month.png)
 
 Our data shows that rates spikes in summer months (June-August) and are lowest in January and December. 
 
-### 2. Compute Average price and average number of nights for each month.
+## 2. Compute Average price and average number of nights for each month.
 
 
 For each month, we computed:
 - `avg_price_per_room` — mean daily booking revenue
 - `nights_stayed` — total weekday + weekend nights
+
+
+Calculated how the average room price and the average number of nights stayed change across different months. 
+then scaled those values so they can be compared. 
+
+First, it groups the dataset by `arrival_month` and computes the mean of `avg_price_per_room` and `nights_stayed` for each month, giving a clean summary row for every month of the year. 
+Because grouped results make the month turn into an index, `.reset_index()` converts it back into a normal column.
+
+A `MinMaxScaler` is used to rescale both numeric columns into a 0–1 range, ensuring they’re on the same scale even though price and nights have completely different units.
+
+The transformed values are added back as new columns (price_scaled and nights_scaled), making it easy to plot both on the same line graph and visually compare how price and nights move relative to each other over time.
+
+```python
+from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
+
+# grouping data by month and getting the mean for each subset
+monthly_avg = (
+    df.groupby("arrival_month")[["avg_price_per_room", "nights_stayed"]]
+    .mean()
+    .reset_index()
+)
+
+# scaling data so that it can be compared side by side
+scaler = MinMaxScaler()
+scaled = scaler.fit_transform(monthly_avg[["avg_price_per_room", "nights_stayed"]])
+
+# storing scaled values in seperate column.
+monthly_avg['price_scaled'] = scaled[:, 0]
+monthly_avg['nights_scaled'] = scaled[:, 1]
+
+```
 
 | arrival_month | avg_price_per_room | stayed_nights |
 | ------------- | ------------------ | ------------- |
@@ -65,9 +97,9 @@ For each month, we computed:
 | 12            | 83.504243          | 3.252321      |
 
 
-![scaled avg price and nights stayed comparison](scaled_comparison.png)
+![scaled avg price and nights stayed comparison](images/scaled_comparison.png)
 
-Prices and stay lengths both peak in July–August, which tracks with vacation season. When rooms cost more, guests stay longer 
+Prices and stay lengths both peak in July–August (vacation season). When rooms cost more, guests stay longer 
 
 ### 3. Count monthly booking by market segment. 
 
@@ -76,7 +108,23 @@ We counted bookings by month and `market_segment_type` (Direct, Corporate, Group
 - TA: Travel Agents
 - TO: Tour Operators
 
-![Monthly Bookings by Market Segment](MMS.png)
+Compute how many bookings each market segment made in each month. Grouping the dataset by two columns `arrival_month` and `market_segment_type`.
+
+`.size()` counts the number of rows fall into each group, giving the total number of bookings for each segment in each month.
+
+`.reset_index(name="bookings")` names the count column bookings and resets index.
+
+```python
+
+monthly_bookings = (
+    df.groupby(["arrival_month", "market_segment_type"])
+      .size()                      # counts the number of rows (bookings)
+      .reset_index(name="bookings")  # rename the count column
+)
+
+```
+
+![Monthly Bookings by Market Segment](images/MMS.png)
 
 Online channels dominate every month, especially toward the end of the year.
 
@@ -84,13 +132,32 @@ Online channels dominate every month, especially toward the end of the year.
 
 Most popular month is September $1638308.59
 
-![Monthly Revenune by Bookings](Monthly_Revenue_bookings.png)
+Grouping data by the month and then taking the sum of the average price for each month.
+
+```python
+
+# Group by month and sum up the values, "month" is now the index
+monthly_revenue = df.groupby("month")["avg_price_per_room"].sum()
+
+# need to reset index so that way month is no longer being used as index in order to call .idxmax()
+monthly_revenue.reset_index()
+
+# returns the index of the row with the max value. '.loc' grabs the full row of that index. In order
+# for this to work month cannot be considered a column.
+most_popular_month = monthly_revenue.loc[monthly_revenue["avg_price_per_room"].idxmax()]
+
+```
+
+![Monthly Revenune by Bookings](images/Monthly_Revenue_bookings.png)
+
+---
 
 ## 2.2 Database Population
 
 ### Database Setup
 
 The container was initialized with the following command:
+
 ```bash
 docker run -d 
 --name cs236_postgres 
@@ -100,6 +167,7 @@ docker run -d
 -p 5432:5432 
 postgres:16
 ```
+
 **Configuration Details:**
 - **Container Name**: cs236_postgres
 - **Database Name**: hotel_bookings
@@ -117,6 +185,7 @@ The schema was designed to support three distinct tables representing
 3. The unified merged dataset (2015-2018)
 
 #### Table 1: hotel_data
+
 ```sql
 CREATE TABLE hotel_data (
     id SERIAL PRIMARY KEY,
@@ -145,6 +214,7 @@ CREATE TABLE hotel_data (
 - `is_canceled INTEGER`: Binary flag (0/1) for cancellation status
 
 #### Table 2: customer_data
+
 ```sql
 CREATE TABLE customer_data (
     id SERIAL PRIMARY KEY,
@@ -161,12 +231,14 @@ CREATE TABLE customer_data (
     is_canceled INTEGER
 );
 ```
+
 **Design Decisions:**
 - `booking_id VARCHAR(100) UNIQUE`: Business key with uniqueness constraint to prevent duplicate reservations
 - Excludes hotel-specific fields (email, country, hotel_type, arrival_week_number) not present in this dataset
 - Maintains consistent data types with hotel_data for common columns
 
 #### Table 3: unified_data
+
 ```sql
 CREATE TABLE unified_data (
     id SERIAL PRIMARY KEY,
@@ -197,6 +269,7 @@ CREATE TABLE unified_data (
 #### Index Strategy
 
 Indexes were created on most likely to be frequently queried columns to optimize query performance:
+
 ```sql
 -- hotel_data indexes
 CREATE INDEX idx_hotel_arrival_date ON hotel_data(arrival_date);
@@ -218,6 +291,7 @@ CREATE INDEX idx_unified_arrival_date ON unified_data(arrival_date);
 #### Implementation Steps
 
 **Step 1: Spark Session Initialization**
+
 ```python
 spark = SparkSession.builder \
     .appName("Hotel Bookings Database Population") \
@@ -229,6 +303,7 @@ spark = SparkSession.builder \
 ```
 
 **Step 2: Load Cleaned Datasets from Phase 1**
+
 ```python
 # Load Hotel Booking dataset
 print("\nLoading hotel_df.csv...")
@@ -252,6 +327,7 @@ print(f"Merged dataset loaded: {merged_count:,} rows")
 Used `inferSchema=True` to automatically detect data types from CSV, reducing manual type conversion errors.
 
 **Step 3: Data Preparation**
+
 ```python
 # Drop the index column
 if "_c0" in hotel_df.columns:
@@ -270,6 +346,7 @@ if "_c0" in merged_df.columns:
 The `_c0` column is an artifact from CSV export. Removing it ensures schema alignment with PostgreSQL tables.
 
 **Step 4: JDBC Connection Setup**
+
 ```python
 JDBC_URL = f"jdbc:postgresql://{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
@@ -281,6 +358,7 @@ jdbc_properties = {
 ```
 
 **Step 5: Write to Database**
+
 ```python
 print("\nWriting hotel_data table")
 hotel_df.write \
@@ -292,6 +370,7 @@ print(f"hotel_data table populated with {hotel_count:,} rows")
 `mode="overwrite"`: Replaces existing data, ensuring clean state on each execution
 
 **Step 6: Verification**
+
 ```python
 hotel_verify = spark.read \
     .jdbc(url=JDBC_URL, table="hotel_data", properties=jdbc_properties)
