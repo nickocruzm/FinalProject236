@@ -63,14 +63,8 @@ CREATE TABLE unified_data (
 
 -- Create indexes for better query performance
 CREATE INDEX idx_hotel_arrival_date ON hotel_data(arrival_date);
-CREATE INDEX idx_hotel_market_segment ON hotel_data(market_segment_type);
-CREATE INDEX idx_hotel_is_canceled ON hotel_data(is_canceled);
 
 CREATE INDEX idx_customer_arrival_date ON customer_data(arrival_date);
-CREATE INDEX idx_customer_market_segment ON customer_data(market_segment_type);
-CREATE INDEX idx_customer_is_canceled ON customer_data(is_canceled);
 CREATE INDEX idx_customer_booking_id ON customer_data(booking_id);
 
 CREATE INDEX idx_unified_arrival_date ON unified_data(arrival_date);
-CREATE INDEX idx_unified_market_segment ON unified_data(market_segment_type);
-CREATE INDEX idx_unified_is_canceled ON unified_data(is_canceled);
