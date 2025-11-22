@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Hotel Bookings Database{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Hotel Bookings Database</h1>
+    <p>Explore hotel reservation datasets from 2015-2018</p>
+</div>
+
+<div class="datasets-grid">
+    {% for table_name, table_info in table_stats.items() %}
+    <div class="dataset-card">
+        <h2>{{ table_info.description }}</h2>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Total Records:</span>
+                <span class="stat-value">{{ "{:,}".format(table_info.stats.total_rows) }}</span>
+            </div>
+
+            {% if table_info.stats.cancellation_rate %}
+            <div class="stat-item">
+                <span class="stat-label">Cancellation Rate:</span>
+                <span class="stat-value">{{ table_info.stats.cancellation_rate }}%</span>
+            </div>
+            {% endif %}
+
+            {% if table_info.stats.date_range %}
+            <div class="stat-item">
+                <span class="stat-label">Date Range:</span>
+                <span class="stat-value">
+                    {{ table_info.stats.date_range.min }} to {{ table_info.stats.date_range.max }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <a href="/view/{{ table_name }}" class="btn btn-primary">View Data</a>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="info-section">
+    <h2>About This Database</h2>
+    <p>
+        This database contains hotel booking information from multiple sources,
+        cleaned and unified for analysis. The data includes booking details,
+        customer information, pricing, and cancellation status.
+    </p>
+    <ul>
+        <li><strong>Hotel Data:</strong> Original hotel bookings from 2015-2016</li>
+        <li><strong>Customer Data:</strong> Customer reservations from 2017-2018</li>
+        <li><strong>Unified Data:</strong> Combined dataset spanning 2015-2018</li>
+    </ul>
+</div>
+{% endblock %}
