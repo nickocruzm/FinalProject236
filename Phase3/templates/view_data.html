@@ -8,6 +8,25 @@
     <p>Showing {{ rows|length }} of {{ "{:,}".format(total_count) }} records</p>
 </div>
 
+<form method="get" class="filter-form" style="margin-bottom: 20px;">
+    <h3>Filter Results</h3>
+
+    {% for col in columns %}
+        <label>{{ col }}:</label>
+        <input 
+            type="text" 
+            name="{{ col }}" 
+            value="{{ filters.get(col, '') }}"
+            placeholder="Filter by {{ col }}">
+        <br>
+    {% endfor %}
+
+    <input type="hidden" name="rows_per_page" value="{{ rows_per_page }}">
+
+    <button type="submit" class="btn">Apply Filters</button>
+    <a href="{{ url_for('view_table', table_name=table_name) }}" class="btn">Clear</a>
+</form>
+
 <div class="table-controls">
     <div class="pagination-info">
         Page {{ current_page }} of {{ total_pages }}

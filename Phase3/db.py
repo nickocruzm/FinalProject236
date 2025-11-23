@@ -12,18 +12,32 @@ def get_db_connection():
         raise
 
 
-def get_table_data(table_name, limit=50, offset=0):
+def get_table_data(table_name, limit=50, offset=0, filters=None):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
+        # Build WHERE clause based on filters
+        where_clauses = []
+        params = []
+
+        if filters:
+            for col, val in filters.items():
+                where_clauses.append(f"{col}::text ILIKE %s")
+                params.append(f"%{val}%")
+
+        where_sql = ""
+        if where_clauses:
+            where_sql = "WHERE " + " AND ".join(where_clauses)
+
         # Get total count
-        cursor.execute(f"SELECT COUNT(*) as count FROM {table_name}")
+        count_query = f"SELECT COUNT(*) as count FROM {table_name} {where_sql}"
+        cursor.execute(count_query, params)
         total_count = cursor.fetchone()['count']
 
         # Get paginated data
-        query = f"SELECT * FROM {table_name} ORDER BY arrival_date, arrival_year LIMIT %s OFFSET %s"
-        cursor.execute(query, (limit, offset))
+        query = f"SELECT * FROM {table_name} {where_sql} ORDER BY arrival_date, arrival_year LIMIT %s OFFSET %s"
+        cursor.execute(query, params + [limit, offset])
         rows = cursor.fetchall()
 
         return rows, total_count

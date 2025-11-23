@@ -53,8 +53,14 @@ def view_table(table_name):
         rows_per_page = request.args.get('rows_per_page', ROWS_PER_PAGE, type=int)
         offset = (page - 1) * rows_per_page
 
+        # Extract filter parameters (anything not page or rows_per_page)
+        filters = {}
+        for key, value in request.args.items():
+            if key not in ('page', 'rows_per_page') and value.strip():
+                filters[key] = value
+
         # Get data and total count
-        rows, total_count = get_table_data(table_name, limit=rows_per_page, offset=offset)
+        rows, total_count = get_table_data(table_name, limit=rows_per_page, offset=offset, filters=filters)
         columns = get_table_columns(table_name)
 
         # Calculate pagination info
@@ -68,10 +74,12 @@ def view_table(table_name):
                              current_page=page,
                              total_pages=total_pages,
                              total_count=total_count,
-                             rows_per_page=rows_per_page)
+                             rows_per_page=rows_per_page,
+                             filters=filters)
 
     except Exception as e:
         return render_template('error.html', error=str(e))
+
 
 
 @app.route('/api/table/<table_name>')
