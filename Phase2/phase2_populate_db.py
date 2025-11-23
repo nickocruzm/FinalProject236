@@ -29,6 +29,7 @@ print("="*70)
 
 spark = SparkSession.builder \
     .appName("Hotel Bookings Database Population") \
+    .config("spark.jars", "/Users/nickocruz/Downloads/postgresql-42.7.3.jar") \
     .config("spark.driver.memory", "4g") \
     .config("spark.sql.shuffle.partitions", "8") \
     .config("spark.driver.host", "localhost") \
