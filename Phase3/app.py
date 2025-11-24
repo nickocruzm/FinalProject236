@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from db import get_db_connection, get_table_data, get_table_columns, get_table_statistics
+from db import get_db_connection, get_table_data, get_table_columns, get_table_statistics, get_column_metadata
 from config import DEBUG, ROWS_PER_PAGE
 
 app = Flask(__name__)
@@ -62,6 +62,7 @@ def view_table(table_name):
         # Get data and total count
         rows, total_count = get_table_data(table_name, limit=rows_per_page, offset=offset, filters=filters)
         columns = get_table_columns(table_name)
+        column_metadata = get_column_metadata(table_name)
 
         # Calculate pagination info
         total_pages = (total_count + rows_per_page - 1) // rows_per_page
@@ -70,6 +71,7 @@ def view_table(table_name):
                              table_name=table_name,
                              table_description=AVAILABLE_TABLES[table_name],
                              columns=columns,
+                             column_metadata=column_metadata,
                              rows=rows,
                              current_page=page,
                              total_pages=total_pages,

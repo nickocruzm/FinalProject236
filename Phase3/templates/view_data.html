@@ -8,24 +8,83 @@
     <p>Showing {{ rows|length }} of {{ "{:,}".format(total_count) }} records</p>
 </div>
 
-<form method="get" class="filter-form" style="margin-bottom: 20px;">
-    <h3>Filter Results</h3>
+<!-- Filter Panel -->
+<div class="filter-panel">
+    <div class="filter-header">
+        <h3>Filter Data</h3>
+        <button type="button" class="toggle-filters" onclick="toggleFilters()">
+            <span id="filter-toggle-text">Hide Filters</span>
+        </button>
+    </div>
 
-    {% for col in columns %}
-        <label>{{ col }}:</label>
-        <input 
-            type="text" 
-            name="{{ col }}" 
-            value="{{ filters.get(col, '') }}"
-            placeholder="Filter by {{ col }}">
-        <br>
-    {% endfor %}
+    <form method="get" class="filter-form" id="filterForm">
+        <div class="filter-grid">
+            {% for col in columns %}
+                {% set meta = column_metadata[col] %}
+                <div class="filter-item">
+                    <label for="filter_{{ col }}">{{ col.replace('_', ' ').title() }}</label>
 
-    <input type="hidden" name="rows_per_page" value="{{ rows_per_page }}">
+                    {% if meta.filter_type == 'boolean' %}
+                        <!-- Boolean dropdown -->
+                        <select name="{{ col }}" id="filter_{{ col }}">
+                            <option value="">All</option>
+                            <option value="1" {% if filters.get(col) == '1' %}selected{% endif %}>Yes</option>
+                            <option value="0" {% if filters.get(col) == '0' %}selected{% endif %}>No</option>
+                        </select>
 
-    <button type="submit" class="btn">Apply Filters</button>
-    <a href="{{ url_for('view_table', table_name=table_name) }}" class="btn">Clear</a>
-</form>
+                    {% elif meta.filter_type == 'select' %}
+                        <!-- Dropdown for low-cardinality columns -->
+                        <select name="{{ col }}" id="filter_{{ col }}">
+                            <option value="">All</option>
+                            {% for option in meta.options %}
+                                <option value="{{ option }}" {% if filters.get(col) == option|string %}selected{% endif %}>
+                                    {{ option }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                    {% elif meta.filter_type == 'date' %}
+                        <!-- Date picker -->
+                        <input
+                            type="date"
+                            name="{{ col }}"
+                            id="filter_{{ col }}"
+                            value="{{ filters.get(col, '') }}"
+                        >
+
+                    {% elif meta.filter_type == 'number' %}
+                        <!-- Number input -->
+                        <input
+                            type="number"
+                            name="{{ col }}"
+                            id="filter_{{ col }}"
+                            value="{{ filters.get(col, '') }}"
+                            placeholder="Search {{ col }}"
+                            step="0.01"
+                        >
+
+                    {% else %}
+                        <!-- Text input -->
+                        <input
+                            type="text"
+                            name="{{ col }}"
+                            id="filter_{{ col }}"
+                            value="{{ filters.get(col, '') }}"
+                            placeholder="Search {{ col }}"
+                        >
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <input type="hidden" name="rows_per_page" value="{{ rows_per_page }}">
+
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{{ url_for('view_table', table_name=table_name) }}" class="btn btn-secondary">Clear All</a>
+        </div>
+    </form>
+</div>
 
 <div class="table-controls">
     <div class="pagination-info">
@@ -43,21 +102,30 @@
             </tr>
         </thead>
         <tbody>
-            {% for row in rows %}
-            <tr>
-                {% for column in columns %}
-                <td>{{ row[column] if row[column] is not none else 'N/A' }}</td>
+            {% if rows %}
+                {% for row in rows %}
+                <tr>
+                    {% for column in columns %}
+                    <td>{{ row[column] if row[column] is not none else 'N/A' }}</td>
+                    {% endfor %}
+                </tr>
                 {% endfor %}
-            </tr>
-            {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="{{ columns|length }}" class="no-data">
+                        No records found matching your filters.
+                    </td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>
 
+{% if total_pages > 1 %}
 <div class="pagination">
     {% if current_page > 1 %}
-    <a href="?page=1" class="btn">First</a>
-    <a href="?page={{ current_page - 1 }}" class="btn">Previous</a>
+    <a href="?page=1&{{ request.query_string.decode().replace('page=' ~ current_page, 'page=1') }}" class="btn">First</a>
+    <a href="?{{ request.query_string.decode().replace('page=' ~ current_page, 'page=' ~ (current_page - 1)) }}" class="btn">Previous</a>
     {% endif %}
 
     <span class="page-numbers">
@@ -65,14 +133,30 @@
             {% if page_num == current_page %}
                 <span class="current-page">{{ page_num }}</span>
             {% else %}
-                <a href="?page={{ page_num }}">{{ page_num }}</a>
+                <a href="?{{ request.query_string.decode().replace('page=' ~ current_page, 'page=' ~ page_num) }}">{{ page_num }}</a>
             {% endif %}
         {% endfor %}
     </span>
 
     {% if current_page < total_pages %}
-    <a href="?page={{ current_page + 1 }}" class="btn">Next</a>
-    <a href="?page={{ total_pages }}" class="btn">Last</a>
+    <a href="?{{ request.query_string.decode().replace('page=' ~ current_page, 'page=' ~ (current_page + 1)) }}" class="btn">Next</a>
+    <a href="?{{ request.query_string.decode().replace('page=' ~ current_page, 'page=' ~ total_pages) }}" class="btn">Last</a>
     {% endif %}
 </div>
+{% endif %}
+
+<script>
+function toggleFilters() {
+    const form = document.getElementById('filterForm');
+    const toggleText = document.getElementById('filter-toggle-text');
+
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        toggleText.textContent = 'Hide Filters';
+    } else {
+        form.style.display = 'none';
+        toggleText.textContent = 'Show Filters';
+    }
+}
+</script>
 {% endblock %}
