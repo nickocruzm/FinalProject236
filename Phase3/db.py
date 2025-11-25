@@ -23,7 +23,7 @@ def get_table_data(table_name, limit=50, offset=0, filters=None):
 
         if filters:
             for col, val in filters.items():
-                where_clauses.append(f"{col}::text ILIKE %s")
+                where_clauses.append(f'"{col}"::text ILIKE %s')
                 params.append(f"%{val}%")
 
         where_sql = ""
@@ -36,7 +36,7 @@ def get_table_data(table_name, limit=50, offset=0, filters=None):
         total_count = cursor.fetchone()['count']
 
         # Get paginated data
-        query = f"SELECT * FROM {table_name} {where_sql} ORDER BY arrival_date, arrival_year LIMIT %s OFFSET %s"
+        query = f'SELECT * FROM {table_name} {where_sql} ORDER BY "arrival_date", "arrival_year" LIMIT %s OFFSET %s'
         cursor.execute(query, params + [limit, offset])
         rows = cursor.fetchall()
 
@@ -107,10 +107,10 @@ def get_column_metadata(table_name):
             elif col_type in ('integer', 'bigint', 'smallint'):
                 # Check if it's a boolean-like column (only 0 and 1)
                 cursor.execute(f"""
-                    SELECT DISTINCT {col_name}
+                    SELECT DISTINCT "{col_name}"
                     FROM {table_name}
-                    WHERE {col_name} IS NOT NULL
-                    ORDER BY {col_name}
+                    WHERE "{col_name}" IS NOT NULL
+                    ORDER BY "{col_name}"
                 """)
                 distinct_vals = [row[col_name] for row in cursor.fetchall()]
 
@@ -124,18 +124,18 @@ def get_column_metadata(table_name):
             elif col_type in ('text', 'character varying'):
                 # Check cardinality
                 cursor.execute(f"""
-                    SELECT COUNT(DISTINCT {col_name}) as distinct_count
+                    SELECT COUNT(DISTINCT "{col_name}") as distinct_count
                     FROM {table_name}
-                    WHERE {col_name} IS NOT NULL
+                    WHERE "{col_name}" IS NOT NULL
                 """)
                 distinct_count = cursor.fetchone()['distinct_count']
 
                 if distinct_count <= 20:
                     cursor.execute(f"""
-                        SELECT DISTINCT {col_name}
+                        SELECT DISTINCT "{col_name}"
                         FROM {table_name}
-                        WHERE {col_name} IS NOT NULL
-                        ORDER BY {col_name}
+                        WHERE "{col_name}" IS NOT NULL
+                        ORDER BY "{col_name}"
                         LIMIT 20
                     """)
                     metadata[col_name]['filter_type'] = 'select'
@@ -175,7 +175,7 @@ def get_table_statistics(table_name):
         if cursor.fetchone():
             cursor.execute(f"""
                 SELECT
-                    ROUND(AVG(is_canceled) * 100, 2) as cancellation_rate
+                    ROUND(AVG("is_canceled") * 100, 2) as cancellation_rate
                 FROM {table_name}
             """)
             result = cursor.fetchone()
@@ -191,8 +191,8 @@ def get_table_statistics(table_name):
         if cursor.fetchone():
             cursor.execute(f"""
                 SELECT
-                    MIN(arrival_date) as min_date,
-                    MAX(arrival_date) as max_date
+                    MIN("arrival_date") as min_date,
+                    MAX("arrival_date") as max_date
                 FROM {table_name}
             """)
             result = cursor.fetchone()
