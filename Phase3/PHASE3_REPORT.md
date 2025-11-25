@@ -524,6 +524,74 @@ def health_check():
 
 ## Search and Pagination Features
 
+### Search/Filtering
+
+#### Overview
+Filtering works in three stages:
+1. User selects filter values in the HTML form
+2. Flask reads those values from the URL query string
+3. Those values are passed to get_table_data(...) so SQL can filter rows
+
+
+#### Dynamic Filter Generation 
+- `view_data.html` template dynamically generates filtering controls for every database column. 
+- Each filter input is assigned a name attribute matching the corresponding column name. 
+- Ensures that the submitted filter parameters align directly with database fields, allowing the Flask backend to interpret them automatically as query constraints.
+
+
+Filtering UI is constructed inside a loop
+```{% for col in columns %}```
+
+For each column, a filter input is created. Regardless of the filter type—text, number, date, boolean, or select—the name attribute of the input is always set equal to the column’s name:
+
+- Boolean and Categorical Filter
+
+```html
+<select name="{{ col }}" id="filter_{{ col }}">
+```
+
+- Date Filter
+
+```html
+<input type="date" name="{{ col }}" id="filter_{{ col }}">
+```
+
+- Numeric Filter
+
+```html
+<input type="number" name="{{ col }}" id="filter_{{ col }}">
+```
+
+- Text Filter
+
+```html
+<input type="text" name="{{ col }}" id="filter_{{ col }}">
+```
+
+When the user applies a filter it is sumbitted using the HTTP GET method. The resulting URL is encoded as:
+
+`/view/<table_name>?column_name=value`
+
+(e.g. `/view/hotel_data?arrival_date=2016-01-01&is_canceled=1`)
+
+#### Filtering on the Backend
+
+In the `view_table()` route, the application collects all query parameters except for pagination-related ones:
+
+```python
+    filters = {}
+    for key, value in request.args.items():
+        if key not in ('page', 'rows_per_page') and value.strip():
+            filters[key] = value
+```
+
+- Every parameter whose name matches a column And has a non-empty value is automatically treated as a filtering condition.
+
+The `filters` dictionary is then passed into `get_table_data(...)` where it is applied to the SQLs `WHERE` clause.
+
+
+
+
 ### Pagination Implementation
 
 Pagination is implemented through a combination of backend SQL queries and frontend URL parameters.
@@ -578,4 +646,8 @@ The template generates pagination links dynamically:
 - Shows a window of page numbers
 - Displays "Next" and "Last" buttons if not on last page
 - Preserves filter parameters in URLs using `request.query_string`
+
+
+
+
 
